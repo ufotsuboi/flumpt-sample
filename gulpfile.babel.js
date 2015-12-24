@@ -29,7 +29,7 @@ let config = {
 gulp.task('webpack', () => {
   gulp.src('src/js/app.js')
       .pipe(webpack(config.webpack))
-      .pipe(gulp.dest('dist/bundle.js'));
+      .pipe(gulp.dest('dist'));
 });
 
 gulp.task('watch', () => {
