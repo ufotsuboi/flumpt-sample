@@ -64,42 +64,146 @@
 
 	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-	var MyComponent = (function (_Component) {
-	  _inherits(MyComponent, _Component);
+	var TodoApp = (function (_Component) {
+	  _inherits(TodoApp, _Component);
 
-	  function MyComponent() {
-	    _classCallCheck(this, MyComponent);
+	  function TodoApp() {
+	    _classCallCheck(this, TodoApp);
 
-	    return _possibleConstructorReturn(this, Object.getPrototypeOf(MyComponent).apply(this, arguments));
+	    return _possibleConstructorReturn(this, Object.getPrototypeOf(TodoApp).apply(this, arguments));
 	  }
 
-	  _createClass(MyComponent, [{
-	    key: "componentDidMount",
-	    value: function componentDidMount() {
-	      this.dispatch("increment");
+	  _createClass(TodoApp, [{
+	    key: "render",
+	    value: function render() {
+	      return React.createElement(
+	        "div",
+	        { className: "todoApp" },
+	        React.createElement(
+	          "h1",
+	          null,
+	          "TODO Application"
+	        ),
+	        React.createElement(TodoForm, this.props),
+	        React.createElement(TodoList, this.props)
+	      );
+	    }
+	  }]);
+
+	  return TodoApp;
+	})(_flumpt.Component);
+
+	var TodoForm = (function (_Component2) {
+	  _inherits(TodoForm, _Component2);
+
+	  function TodoForm() {
+	    _classCallCheck(this, TodoForm);
+
+	    return _possibleConstructorReturn(this, Object.getPrototypeOf(TodoForm).apply(this, arguments));
+	  }
+
+	  _createClass(TodoForm, [{
+	    key: "handleSubmit",
+	    value: function handleSubmit(e) {
+	      e.preventDefault();
+	      var name = (0, _reactDom.findDOMNode)(this.refs.name);
+	      console.log(name.value);
+	      if (name.value !== '') {
+	        this.dispatch("add", name.value);
+	      }
+	      name.value = '';
 	    }
 	  }, {
 	    key: "render",
 	    value: function render() {
-	      var _this2 = this;
-
-	      console.log(this.props);
 	      return React.createElement(
-	        "div",
-	        null,
-	        this.props.count,
+	        "form",
+	        { className: "todoForm", onSubmit: this.handleSubmit.bind(this) },
+	        React.createElement("input", { type: "text", placeholder: "TODOを入力...", ref: "name" }),
 	        React.createElement(
 	          "button",
-	          { onClick: function onClick() {
-	              return _this2.dispatch("increment");
-	            } },
-	          "increment"
+	          { type: "submit" },
+	          "作成"
 	        )
 	      );
 	    }
 	  }]);
 
-	  return MyComponent;
+	  return TodoForm;
+	})(_flumpt.Component);
+
+	var TodoList = (function (_Component3) {
+	  _inherits(TodoList, _Component3);
+
+	  function TodoList() {
+	    _classCallCheck(this, TodoList);
+
+	    return _possibleConstructorReturn(this, Object.getPrototypeOf(TodoList).apply(this, arguments));
+	  }
+
+	  _createClass(TodoList, [{
+	    key: "render",
+	    value: function render() {
+	      var _this4 = this;
+
+	      var todos = this.props.todos.map(function (todo) {
+	        return React.createElement(
+	          Todo,
+	          { key: todo.id, id: todo.id, created_at: todo.created_at, onTodoDestroy: _this4.props.onTodoDestroy },
+	          todo.name
+	        );
+	      });
+	      return React.createElement(
+	        "div",
+	        { className: "todoList" },
+	        todos
+	      );
+	    }
+	  }]);
+
+	  return TodoList;
+	})(_flumpt.Component);
+
+	var Todo = (function (_Component4) {
+	  _inherits(Todo, _Component4);
+
+	  function Todo() {
+	    _classCallCheck(this, Todo);
+
+	    return _possibleConstructorReturn(this, Object.getPrototypeOf(Todo).apply(this, arguments));
+	  }
+
+	  _createClass(Todo, [{
+	    key: "handleDestroy",
+	    value: function handleDestroy() {
+	      this.dispatch("destroy", this.props.id);
+	    }
+	  }, {
+	    key: "render",
+	    value: function render() {
+	      return React.createElement(
+	        "div",
+	        { className: "todo" },
+	        React.createElement(
+	          "span",
+	          { className: "name" },
+	          this.props.children
+	        ),
+	        React.createElement(
+	          "span",
+	          { className: "date" },
+	          this.props.created_at
+	        ),
+	        React.createElement(
+	          "button",
+	          { onClick: this.handleDestroy.bind(this) },
+	          "削除"
+	        )
+	      );
+	    }
+	  }]);
+
+	  return Todo;
 	})(_flumpt.Component);
 
 	var App = (function (_Flux) {
@@ -116,21 +220,37 @@
 
 	    // `subscribe` is called once in constructor
 	    value: function subscribe() {
-	      var _this4 = this;
+	      var _this7 = this;
 
-	      this.on("increment", function () {
-	        _this4.update(function (_ref) {
-	          var count = _ref.count;
+	      this.on("add", function (name) {
+	        var todo = {
+	          id: (Date.now() + Math.floor(Math.random() * 999999)).toString(36),
+	          name: name,
+	          created_at: new Date().toLocaleString()
+	        };
+	        _this7.update(function (_ref) {
+	          var todos = _ref.todos;
 
 	          // return next state
-	          return { count: count + 1 };
+	          return { todos: todos.concat([todo]) };
+	        });
+	      });
+
+	      this.on("destroy", function (id) {
+	        _this7.update(function (_ref2) {
+	          var todos = _ref2.todos;
+
+	          var newTodos = todos.filter(function (todo) {
+	            return todo.id == id ? false : true;
+	          });
+	          return { todos: newTodos };
 	        });
 	      });
 	    }
 	  }, {
 	    key: "render",
 	    value: function render(state) {
-	      return React.createElement(MyComponent, state);
+	      return React.createElement(TodoApp, state);
 	    }
 	  }]);
 
@@ -143,7 +263,7 @@
 	  renderer: function renderer(el) {
 	    (0, _reactDom.render)(el, document.querySelector("#root"));
 	  },
-	  initialState: { count: 0 },
+	  initialState: { todos: [] },
 	  middlewares: [
 	  // logger
 	  //   it may get state before unwrap promise
@@ -153,16 +273,9 @@
 	  }]
 	});
 
-	app.on(":start-updating", function () {
-	  // overlay ui lock
-	});
-	app.on(":end-updating", function () {
-	  // hide ui lock
-	});
-
 	// it fires rendering
 	app.update(function (_initialState) {
-	  return { count: 1 };
+	  return { todos: [] };
 	});
 
 /***/ },
