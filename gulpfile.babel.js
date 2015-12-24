@@ -11,6 +11,7 @@ let config = {
       path: __dirname + '/dist/',
       filename: '[name].js'
     },
+    cache: true,
     resolve: {
       extensions: ['', '.js']
     },
